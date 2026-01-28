@@ -237,6 +237,13 @@ vim.keymap.set({ 'n', 'v' }, '<leader>d', '"_d')
 vim.keymap.set({ 'n', 'v' }, '<C-Q>', '<C-w>q')
 
 vim.keymap.set('n', '<leader>tc', '<cmd>vsplit | terminal claude<CR>', { desc = '[T]erminal [C]laude' })
+vim.keymap.set('n', '<leader>cp', '<cmd>let @+ = expand("%")<CR>', { desc = '[C]opy file [P]ath' })
+
+-- Window resize keymaps (Ctrl+Shift+hjkl)
+vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize -10<CR>', { desc = 'Decrease window width' })
+vim.keymap.set('n', '<C-S-l>', '<cmd>vertical resize +10<CR>', { desc = 'Increase window width' })
+vim.keymap.set('n', '<C-S-j>', '<cmd>resize -10<CR>', { desc = 'Decrease window height' })
+vim.keymap.set('n', '<C-S-k>', '<cmd>resize +10<CR>', { desc = 'Increase window height' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -441,11 +448,19 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--smart-case',
+            '--hidden', -- Search hidden files/folders
+            -- ripgrep respects .gitignore by default
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -495,6 +510,13 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      -- Grep visual selection
+      vim.keymap.set('v', '<leader>sg', function()
+        vim.cmd('noau normal! "vy"')
+        local text = vim.fn.getreg('v')
+        builtin.grep_string({ search = text })
+      end, { desc = '[S]earch [G]rep visual selection' })
     end,
   },
 
