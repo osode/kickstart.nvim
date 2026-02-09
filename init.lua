@@ -490,18 +490,34 @@ require('lazy').setup({
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
-      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-      vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', function()
-        builtin.find_files { hidden = true }
-      end, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-      vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+
+      -- Helper: if cursor is in a neo-tree window, move to a code window first
+      -- so Telescope opens results with the correct cursor position.
+      local function from_code_window(fn)
+        return function()
+          if vim.bo.filetype == 'neo-tree' then
+            vim.cmd 'wincmd l'
+          end
+          fn()
+        end
+      end
+      vim.keymap.set('n', '<leader>sh', from_code_window(builtin.help_tags), { desc = '[S]earch [H]elp' })
+      vim.keymap.set('n', '<leader>sk', from_code_window(builtin.keymaps), { desc = '[S]earch [K]eymaps' })
+      vim.keymap.set(
+        'n',
+        '<leader>sf',
+        from_code_window(function()
+          builtin.find_files { hidden = true }
+        end),
+        { desc = '[S]earch [F]iles' }
+      )
+      vim.keymap.set('n', '<leader>ss', from_code_window(builtin.builtin), { desc = '[S]earch [S]elect Telescope' })
+      vim.keymap.set('n', '<leader>sw', from_code_window(builtin.grep_string), { desc = '[S]earch current [W]ord' })
+      vim.keymap.set('n', '<leader>sg', from_code_window(builtin.live_grep), { desc = '[S]earch by [G]rep' })
+      vim.keymap.set('n', '<leader>sd', from_code_window(builtin.diagnostics), { desc = '[S]earch [D]iagnostics' })
+      vim.keymap.set('n', '<leader>sr', from_code_window(builtin.resume), { desc = '[S]earch [R]esume' })
+      vim.keymap.set('n', '<leader>s.', from_code_window(builtin.oldfiles), { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader><leader>', from_code_window(builtin.buffers), { desc = '[ ] Find existing buffers' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
