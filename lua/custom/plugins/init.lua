@@ -14,6 +14,27 @@ return {
       -- Visual mode diffput/diffget for line-by-line staging
       { 'dp', ':diffput<cr>', mode = 'v', desc = 'Diff: Put selection (stage)' },
       { 'do', ':diffget<cr>', mode = 'v', desc = 'Diff: Obtain selection (restore)' },
+      {
+        '<leader>gf',
+        function()
+          require('telescope.builtin').find_files {
+            prompt_title = 'Diffsplit with...',
+            attach_mappings = function(_, map)
+              local function open_diffsplit(prompt_bufnr)
+                local entry = require('telescope.actions.state').get_selected_entry()
+                require('telescope.actions').close(prompt_bufnr)
+                if entry and entry.path then
+                  vim.cmd('vertical diffsplit ' .. vim.fn.fnameescape(entry.path))
+                end
+              end
+              map('i', '<CR>', open_diffsplit)
+              map('n', '<CR>', open_diffsplit)
+              return true
+            end,
+          }
+        end,
+        desc = 'Diff: Vertical diffsplit with file',
+      },
     },
   },
   {
@@ -52,6 +73,12 @@ return {
           layout = 'diff2_horizontal',
         },
       },
+    },
+  },
+  {
+    'rhysd/git-messenger.vim',
+    keys = {
+      { '<leader>go', '<cmd>GitMessenger<cr>', desc = 'Git: Show commit message' },
     },
   },
 }

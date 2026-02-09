@@ -238,6 +238,21 @@ vim.keymap.set({ 'n', 'v' }, '<C-Q>', '<C-w>q')
 
 vim.keymap.set('n', '<leader>tc', '<cmd>vsplit | terminal claude<CR>', { desc = '[T]erminal [C]laude' })
 vim.keymap.set('n', '<leader>cp', '<cmd>let @+ = expand("%")<CR>', { desc = '[C]opy file [P]ath' })
+vim.keymap.set('n', '<leader>cd', function()
+  local line = vim.api.nvim_win_get_cursor(0)[1] - 1
+  local diagnostics = vim.diagnostic.get(0, { lnum = line })
+  if diagnostics[1] then
+    local d = diagnostics[1]
+    local severity = vim.diagnostic.severity[d.severity] or 'UNKNOWN'
+    local source = d.source or 'unknown'
+    local source_str = d.code and string.format('%s: %s', source, d.code) or source
+    local text = string.format('[%s][%s] %s', severity, source_str, d.message)
+    vim.fn.setreg('+', text)
+    print('Copied: ' .. text)
+  else
+    print 'No diagnostics on this line'
+  end
+end, { desc = '[C]opy [D]iagnostic' })
 
 -- Window resize keymaps (Ctrl+Shift+hjkl)
 vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize -10<CR>', { desc = 'Decrease window width' })
@@ -513,9 +528,9 @@ require('lazy').setup({
 
       -- Grep visual selection
       vim.keymap.set('v', '<leader>sg', function()
-        vim.cmd('noau normal! "vy"')
-        local text = vim.fn.getreg('v')
-        builtin.grep_string({ search = text })
+        vim.cmd 'noau normal! "vy"'
+        local text = vim.fn.getreg 'v'
+        builtin.grep_string { search = text }
       end, { desc = '[S]earch [G]rep visual selection' })
     end,
   },
@@ -681,6 +696,8 @@ require('lazy').setup({
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
+
+          map('<leader>lr', '<cmd>LspRestart<cr>', '[L]sp [R]estart')
         end,
       })
 
@@ -775,6 +792,7 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'prettierd', -- Fast Prettier daemon for JS/TS formatting
+        'eslint_d', -- Fast ESLint daemon for JS/TS linting
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1007,7 +1025,24 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'typescript', 'javascript', 'tsx', 'jsdoc', 'json' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'typescript',
+        'javascript',
+        'tsx',
+        'jsdoc',
+        'json',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1041,7 +1076,7 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
