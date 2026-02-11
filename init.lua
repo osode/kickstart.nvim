@@ -173,6 +173,14 @@ vim.o.foldlevelstart = 99 -- Start with all folds open
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
+-- Auto-reload files changed outside of Neovim
+vim.o.autoread = true
+vim.api.nvim_create_autocmd({ 'FocusGained', 'TermLeave', 'BufEnter', 'WinEnter', 'CursorHold', 'CursorHoldI' }, {
+  callback = function()
+    vim.cmd 'checktime'
+  end,
+})
+
 -- Makes sure csv highlighting works for Nordea exports
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = '*.csv',
@@ -181,6 +189,16 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
     if first_line:find ';' then
       vim.bo.filetype = 'csv_semicolon'
     end
+  end,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'gleam',
+  callback = function()
+    vim.bo.tabstop = 2
+    vim.bo.shiftwidth = 2
+    vim.bo.softtabstop = 2
+    vim.bo.expandtab = true
   end,
 })
 
@@ -235,6 +253,7 @@ vim.keymap.set({ 'n', 'v' }, '<leader>y', [["+y]])
 vim.keymap.set('n', '<leader>Y', [["+Y]])
 vim.keymap.set({ 'n', 'v' }, '<leader>d', '"_d')
 vim.keymap.set({ 'n', 'v' }, '<C-Q>', '<C-w>q')
+vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = '[W]rite file' })
 
 vim.keymap.set('n', '<leader>tc', '<cmd>vsplit | terminal claude<CR>', { desc = '[T]erminal [C]laude' })
 vim.keymap.set('n', '<leader>cp', '<cmd>let @+ = expand("%")<CR>', { desc = '[C]opy file [P]ath' })
@@ -1066,9 +1085,9 @@ require('lazy').setup({
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
+        additional_vim_regex_highlighting = { 'ruby', 'gleam' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { enable = true, disable = { 'ruby', 'gleam' } },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
