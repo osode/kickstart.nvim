@@ -643,6 +643,15 @@ require('lazy').setup({
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
+          -- Add border to hover
+          map('K', function()
+            vim.lsp.buf.hover {
+              border = 'single',
+              max_height = 20,
+              max_width = 130,
+            }
+          end, 'Hover', { 'n' })
+
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
           map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
